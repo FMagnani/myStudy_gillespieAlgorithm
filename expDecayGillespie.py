@@ -7,6 +7,9 @@ class State:
     def __init__(self, N0):
         self.N = N0
 
+def isTerminalState(state):
+    return state.N == 1
+
 def main():
 
     rate = 0.5
@@ -23,10 +26,10 @@ def main():
     fig, ax = plt.subplots(2,2)
 
     # run some stochastic simluations
-    for i in range(10):
-        model = GillespieModel([decayReaction])
+    for _ in range(10):
+        model = GillespieModel([decayReaction], isTerminalState)
 
-        times, states, reactions, propensities = model.simulate(initState, maxTime, i)
+        times, states, reactions, propensities = model.simulate(initState, maxTime)
         states = [s.N for s in states]
         propensities = np.array(propensities)
 

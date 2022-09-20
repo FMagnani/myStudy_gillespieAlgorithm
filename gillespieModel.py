@@ -15,7 +15,7 @@ class Reaction:
         self.apply = apply
 
 class GillespieModel:
-    def __init__(self, reactions):
+    def __init__(self, reactions, isTerminalState = lambda x: False):
         self.nReactions = len(reactions)
 
         self.propensities = []
@@ -32,6 +32,8 @@ class GillespieModel:
 
         self.reactions = reactions
         self.reactionHistory = ["initialState"]
+
+        self.isTerminalState = isTerminalState
 
     def step(self):
         self.updatePropensities()
@@ -58,7 +60,7 @@ class GillespieModel:
         self.stateHistory.append(self.state)
         self.reactionHistory.append(reaction.name)
 
-    def simulate(self, initState, maxTime, initTime=0, numberSimulation=0):
+    def simulate(self, initState, maxTime, initTime=0):
 
         # reset Simulation
         self.currentTime = initTime
@@ -72,11 +74,12 @@ class GillespieModel:
 
         stepNumber = 0
 
-        while(self.currentTime < maxTime):
+        while(self.currentTime < maxTime and not self.isTerminalState(self.state)):
             if(stepNumber%50 == 0):
-                print("Simulation: "+str(numberSimulation)+", Time: "+str(self.currentTime)[:5]+"/"+str(maxTime)[:5]+"...")
+                print("Time: "+str(self.currentTime)[:5]+"/"+str(maxTime)[:5]+"...")
             self.step()
             stepNumber += 1
+        print("End of simulation\n\n")
 
         # we update a last time the propensities in order to have their history the same length of the others
         self.updatePropensities()

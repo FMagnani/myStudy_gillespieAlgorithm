@@ -54,6 +54,15 @@ def main():
     ax[0,0].legend()
     ax[1,0].legend()
 
+    fig2, ax = plt.subplots(2,1)
+
+    times = np.array(times)
+    timeIntervals = times[1:] - times[:-1]
+    ax[0].plot(timeIntervals, 'k')
+    ax[1].plot(times, 'k', linewidth=2)
+    ax[0].set_title("Time intervals along iterations")
+    ax[1].set_title("(Flow of) Time along iterations")
+
     plt.show()
 
 if(__name__ == '__main__'):

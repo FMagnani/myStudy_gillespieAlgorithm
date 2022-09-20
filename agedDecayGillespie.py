@@ -4,9 +4,11 @@ from gillespieModel import Reaction, GillespieModel
 from scipy.integrate import solve_ivp
 
 class State:
-    def __init__(self, A0, D0):
-        self.A = A0
-        self.D = D0
+    def __init__(self, N0):
+        self.N = N0
+
+def isTerminalState(state):
+    return state.N == 1
 
 def mu(t):
     # pdf Weibull / 1- cdf Weibull
@@ -26,10 +28,7 @@ def cdfWeibull(t):
     return pow(np.e, -pow(-d*t, m))
 
 def decayPropensity(state, t):
-    return mu(t)*state.A
-
-def nothingPropensity(state, t):
-    return (1-mu(t))*state.A + state.D
+    return mu(t)*state.N
 
 
 def main():
@@ -38,41 +37,39 @@ def main():
     decayReaction = Reaction(
         name = "decay",
         propensity = decayPropensity,
-        apply = lambda s: State(s.A-1, s.D+1)
-    )
-    nothingReaction = Reaction(
-        name = "nothing",
-        propensity = nothingPropensity,
-        apply = lambda s: State(s.A, s.D)
+        apply = lambda s: State(s.N-1)
     )
 
-    model = GillespieModel([decayReaction, nothingReaction])
+    model = GillespieModel([decayReaction], isTerminalState)
 
     # define Simulation
-    maxTime = 50
-    A0 = 1000
-    initState = State(A0, 0)
+    maxTime = 100
+    N0 = 10000
+    initState = State(N0)
 
     fig, ax = plt.subplots(1,2)
 
     # run some stochastic simluations
-    for i in range(3):
+    for _ in range(6):
 
-        times, states, reactions, propensities = model.simulate(initState, maxTime, i)
-        alives = np.array([s.A for s in states])
+        times, states, reactions, propensities = model.simulate(initState, maxTime, initTime=1)
+        alives = np.array([s.N for s in states])
         times = np.array(times)
         propensities = np.array(propensities)
         propensities = propensities[:,0]
 
-        ax[0].plot(times, alives, 'k', alpha=0.5, label="Number of particles vs time")
-        ax[1].plot(times, propensities, 'k', alpha=0.5, label="Propensity of decay vs time")
+        ax[0].plot(times, alives, 'k', alpha=0.5)
+        ax[1].plot(times, propensities, 'k', alpha=0.5)
 
-        ax[0].legend()
-        ax[1].legend()
+        ax[0].set_title("Number of particles vs time")
+        ax[1].set_title("Propensity of decay vs time")
+
 
     # deterministic
-    ax[0].plot(times, A0*cdfWeibull(times), 'r', label="Weibull cdf * A0")
-    ax[1].plot(times, A0*pdfWeibull(times), 'r', label="Weibull pdf * A0")
+    ax[0].plot(times, N0*cdfWeibull(times), 'r', label="N0*Weibull cdf")
+    ax[1].plot(times, N0*pdfWeibull(times), 'r', label="N0*Weibull pdf")
+    ax[0].legend()
+    ax[1].legend()
 
     plt.show()
 

@@ -6,7 +6,7 @@ class Reaction:
     def __init__(self, name, propensity, apply):
         """
         name: str
-        propensity: callable (State --> propensity)
+        propensity: callable (State, Time --> Propensity)
         apply: callable (State --> State)
         [State is a user-defined class]
         """
@@ -26,7 +26,6 @@ class GillespieModel:
         self.currentTime = 0
         self.timeHistory = [0]
 
-        # to be redefined in simulate
         self.state = 0
         self.stateHistory = []
         self.maxTime = 0
@@ -39,8 +38,14 @@ class GillespieModel:
         self.updateTime()
         self.updateReaction()
 
+#        print(self.state.A)
+#        print(self.propensities)
+#        print(self.reactionHistory[-1])
+#        print(self.reactions[0].apply(self.state).A /self.state.A)
+
+
     def updatePropensities(self):
-        newPropensities = [j.propensity(self.state) for j in self.reactions]
+        newPropensities = [j.propensity(self.state, self.currentTime) for j in self.reactions]
         self.propensities = newPropensities
         self.totPropensity = np.sum(newPropensities)
         self.probabilities = newPropensities /np.sum(newPropensities)
@@ -61,8 +66,16 @@ class GillespieModel:
 
     def simulate(self, initState, maxTime, numberSimulation=0):
 
+        # reset Simulation
+        self.currentTime = 0
         self.state = initState
-        self.stateHistory = [self.state]
+
+        # clear histories
+        self.stateHistory = [initState]
+        self.timeHistory = [0]
+        self.propensityHistory = []
+        self.reactionHistory = ["initialState"]
+
         stepNumber = 0
 
         while(self.currentTime < maxTime):

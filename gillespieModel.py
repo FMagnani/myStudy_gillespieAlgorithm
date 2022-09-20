@@ -3,19 +3,19 @@ from numpy.random import uniform
 import numpy as np
 
 class Reaction:
-    def __init__(self, name, signature, propensity):
+    def __init__(self, name, propensity, apply):
         """
         name: str
-        signature: array
-        propensity: callable (state --> propensity)
+        propensity: callable (State --> propensity)
+        apply: callable (State --> State)
+        [State is a user-defined class]
         """
         self.name = name
-        self.signature = signature
         self.propensity = propensity
+        self.apply = apply
 
 class GillespieModel:
-    def __init__(self, reactions, groupNames):
-        self.nGroups = len(groupNames)
+    def __init__(self, reactions):
         self.nReactions = len(reactions)
 
         self.propensities = []
@@ -27,7 +27,7 @@ class GillespieModel:
         self.timeHistory = [0]
 
         # to be redefined in simulate
-        self.state = []
+        self.state = 0
         self.stateHistory = []
         self.maxTime = 0
 
@@ -55,7 +55,7 @@ class GillespieModel:
 
     def updateReaction(self):
         reaction = choice(self.reactions, p=self.probabilities)
-        self.state = [self.state[i]+reaction.signature[i] for i in range(self.nGroups)]
+        self.state = reaction.apply(self.state)
         self.stateHistory.append(self.state)
         self.reactionHistory.append(reaction.name)
 

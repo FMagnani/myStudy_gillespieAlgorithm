@@ -38,12 +38,6 @@ class GillespieModel:
         self.updateTime()
         self.updateReaction()
 
-#        print(self.state.A)
-#        print(self.propensities)
-#        print(self.reactionHistory[-1])
-#        print(self.reactions[0].apply(self.state).A /self.state.A)
-
-
     def updatePropensities(self):
         newPropensities = [j.propensity(self.state, self.currentTime) for j in self.reactions]
         self.propensities = newPropensities
@@ -64,15 +58,15 @@ class GillespieModel:
         self.stateHistory.append(self.state)
         self.reactionHistory.append(reaction.name)
 
-    def simulate(self, initState, maxTime, numberSimulation=0):
+    def simulate(self, initState, maxTime, initTime=0, numberSimulation=0):
 
         # reset Simulation
-        self.currentTime = 0
+        self.currentTime = initTime
         self.state = initState
 
         # clear histories
         self.stateHistory = [initState]
-        self.timeHistory = [0]
+        self.timeHistory = [initTime]
         self.propensityHistory = []
         self.reactionHistory = ["initialState"]
 

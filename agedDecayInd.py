@@ -38,13 +38,13 @@ def main():
 
     # define Simulation
     maxTime = 100
-    N0 = 5000
-    initState = [State(True, 0) for _ in range(N0)]
+    N0 = 500
 
     fig, ax = plt.subplots(1,1)
 
     # run some stochastic simluations
-    for _ in range(4):
+    for i in range(4):
+        initState = [State(True, i) for _ in range(N0)]
 
         times, population = model.simulate(initState, maxTime, initTime=1)
         population = np.array(population)[:,0]

@@ -4,14 +4,15 @@ from gillespieModel import Reaction, individualGillespieModel
 from scipy.integrate import solve_ivp
 
 class indState:
-    def __init__(self, exist):
+    def __init__(self, exist, group=0):
         self.exist = exist
+        self.group = group
 
 def indDecayPropensity(state, t):
-    return 0.7*int(state.exist)
+    return 0.6*int(state.exist)
 
 def main():
-    rate = 0.7
+    rate = 0.6
 
     # define model
     decayReaction = Reaction(
@@ -20,11 +21,11 @@ def main():
         apply = lambda s: indState(False)
     )
 
-    model = individualGillespieModel([decayReaction])
+    model = individualGillespieModel([decayReaction], 1)
 
     # define Simulation
-    maxTime = 10
-    N0 = 100
+    maxTime = 12
+    N0 = 1000
 
     fig, ax = plt.subplots(1,1)
 

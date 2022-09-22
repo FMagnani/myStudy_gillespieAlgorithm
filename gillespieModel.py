@@ -88,7 +88,7 @@ class GillespieModel:
 
 
 class individualGillespieModel:
-    def __init__(self, reactions):
+    def __init__(self, reactions, nGroups):
         self.nReactions = len(reactions)
         self.reactions = reactions
 
@@ -101,14 +101,16 @@ class individualGillespieModel:
         self.maxTime = 0
 
         self.state = []
-        self.nIndividuals = 0
-        self.nHistory = [0]
+        self.populationHistory = [0]
+
+        self.nGroups = nGroups
+        self.population = [0]
 
     def step(self):
         self.updatePropensities()
         self.updateTime()
         self.updateReaction()
-        self.updateN()
+        self.updateGroups()
 
     def updatePropensities(self):
         # axis=0: reactions
@@ -126,46 +128,55 @@ class individualGillespieModel:
         self.timeHistory.append(self.currentTime)
 
     def updateReaction(self):
+        # Draw row = reaction
         reactionProb = np.sum(self.probabilities, axis=1)
         idxReaction = choice(np.arange(self.nReactions), p=reactionProb)
 
+        # Draw column = individual
+        nIndividuals = len(self.state)
+
         individualProb = self.probabilities[idxReaction, :] /reactionProb[idxReaction]
-        idxIndividual = choice(np.arange(self.nIndividuals), p=individualProb)
+        idxIndividual = choice(np.arange(nIndividuals), p=individualProb)
 
         reaction = self.reactions[idxReaction]
         individual = self.state[idxIndividual]
 
+        # Update state of the individual
         self.state[idxIndividual] = reaction.apply(individual)
 
-    def updateN(self):
-        N = 0
-        for state in self.state:
-            if state.exist:
-                N += 1
-        #self.nIndividuals = N
-        self.nHistory.append(N)
+    def updateGroups(self):
+        population = np.zeros(self.nGroups)
+        newState = []
+        for i in self.state:
+            if i.exist:
+                population[i.group] += 1
+                newState.append(i)
+        self.state = newState
+        self.population = population
+        self.populationHistory.append(population)
 
     def simulate(self, initState, maxTime, initTime=0):
 
         # reset Simulation
         self.currentTime = initTime
         self.state = initState
-        self.nIndividuals = len(initState)
 
         # clear histories
-        self.nHistory = [self.nIndividuals]
+        self.populationHistory = []
         self.timeHistory = [initTime]
+
+        self.updateGroups()
 
         stepNumber = 0
 
-        while(self.currentTime < maxTime and not self.nHistory[-1] == 1):
+        while(self.currentTime < maxTime and not self.population[0] == 1):
             if(stepNumber%50 == 0):
                 print("Time: "+str(self.currentTime)[:5]+"/"+str(maxTime)[:5]+"...")
             self.step()
             stepNumber += 1
-        if self.nHistory[-1] == 1:
+        if self.population[0] == 1:
             print("End of simulation: Terminal state\n\n")
         else:
-            print("End of simulation: Terminal time\n\n")            
+            print("End of simulation: Terminal time\n\n")
 
-        return self.timeHistory, self.nHistory
+        return self.timeHistory, self.populationHistory

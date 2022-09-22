@@ -21,7 +21,7 @@ def main():
 
     # Define simulation conditions
     maxTime = 10
-    initState = State(1000)
+    initState = State(5000)
 
     fig, ax = plt.subplots(2,2)
 

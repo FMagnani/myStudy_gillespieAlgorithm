@@ -35,7 +35,7 @@ def main():
     )
 
     # Define simulation conditions
-    maxTime = 10
+    maxTime = 30
     initState = State(1000, 1000)
 
     nSimulations = 2
@@ -76,6 +76,8 @@ def main():
     ax[0].set_title("Time intervals along iterations")
     ax[1].set_title("(Flow of) Time along iterations")
     ax[2].set_title("Total propensity along iterations")
+    ax[0].set_xticks([])
+    ax[1].set_xticks([])
     fig2.suptitle("From last simulation")
 
     plt.show()

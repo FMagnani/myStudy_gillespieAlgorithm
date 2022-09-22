@@ -2,8 +2,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 from gillespieModel import Reaction, individualGillespieModel
 from scipy.integrate import solve_ivp
+from numpy.random import uniform
 
 class State:
+    """
+    Rather than the age we record the time of birth of an individual: t0
+    Then, the age at time t is simply t-t0
+
+    Also, exist and group are referenced and used inside Gillespie. They must be present.
+    """
     def __init__(self, exist, t0, group=0):
         self.exist = exist
         self.t0 = t0
@@ -16,7 +23,7 @@ def mu(age):
     return (m*d)*pow((age*d), m-1)
 
 def decayPropensity(state, t):
-    return mu(state.t0+t)
+    return mu(t-state.t0)
 
 def cdfWeibull(t):
     # Actually 1 - cdf
@@ -38,13 +45,13 @@ def main():
 
     # define Simulation
     maxTime = 100
-    N0 = 500
+    N0 = 1000
 
     fig, ax = plt.subplots(1,1)
 
     # run some stochastic simluations
     for i in range(4):
-        initState = [State(True, i) for _ in range(N0)]
+        initState = [State(True, -5*i) for _ in range(N0)]
 
         times, population = model.simulate(initState, maxTime, initTime=1)
         population = np.array(population)[:,0]

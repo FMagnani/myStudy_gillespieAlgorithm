@@ -35,51 +35,48 @@ def main():
     )
 
     # Define simulation conditions
-    maxTime = 30
+    maxTime = 10
     initState = State(1000, 1000)
 
-#    nSimulations = 1
-#    figArray = []
+    nSimulations = 2
+    figSim, axSim = plt.subplots(nSimulations,1)
+    figProp, axProp = plt.subplots(nSimulations,1)
+
+
+    model = GillespieModel([birth, eat, deathPred, deathPrey], isTerminalState)
 
     # run some stochastic simluations
-    for _ in range(2):
-
-        fig, ax = plt.subplots(2,1)
-        model = GillespieModel([birth, eat, deathPred, deathPrey], isTerminalState)
+    for sim in range(nSimulations):
 
         times, states, reactions, propensities = model.simulate(initState, maxTime)
         preys = [s.Prey for s in states]
         preds = [s.Pred for s in states]
         propensities = np.array(propensities)
 
-        ax[0].plot(times, preys, 'b', markersize=1.5, alpha=0.7, label="Preys")
-        ax[0].plot(times, preds, 'r', alpha=0.7, label="Predators")
-        ax[1].plot(times, propensities[:,0], 'b', alpha=0.7, label="Prey birth")
-        ax[1].plot(times, propensities[:,1], 'r', alpha=0.7, label="Prey eaten")
-        ax[1].plot(times, propensities[:,2], 'k', alpha=0.7, label="Predator death")
-        ax[1].plot(times, propensities[:,3], 'g', alpha=0.7, label="Prey death")
+        axSim[sim].plot(times, preys, 'b', markersize=1.5, alpha=0.7, label="Preys")
+        axSim[sim].plot(times, preds, 'r', alpha=0.7, label="Predators")
+        axProp[sim].plot(times, propensities[:,0], 'b', alpha=0.7, label="Prey birth")
+        axProp[sim].plot(times, propensities[:,1], 'r', alpha=0.7, label="Prey eaten")
+        axProp[sim].plot(times, propensities[:,2], 'k', alpha=0.7, label="Predator death")
+        axProp[sim].plot(times, propensities[:,3], 'g', alpha=0.7, label="Prey death")
 
-        ax[0].legend()
-        ax[1].legend()
+        axSim[sim].legend()
+        axProp[sim].legend()
 
-#    preys = np.array(preys)
-#    print(preys[1:]-preys[:-1])
-#    preds = np.array(preys)
-#    print(preds[1:]-preds[:-1])
+        axSim[sim].set_title("Status vs time, simulation {}".format(sim))
+        axProp[sim].set_title("Propensities vs time, simulation {}".format(sim))
 
-#    ax[0,0].set_title("Number of particles vs time")
-#    ax[0,1].set_title("Number of particles vs time")
-#    ax[1,0].set_title("Propensity of decay vs time")
-#    ax[1,1].set_title("Propensity of decay vs time")
-
-    fig2, ax = plt.subplots(2,1)
+    fig2, ax = plt.subplots(3,1)
 
     times = np.array(times)
     timeIntervals = times[1:] - times[:-1]
     ax[0].plot(timeIntervals, 'k')
     ax[1].plot(times, 'k', linewidth=2)
+    ax[2].plot(np.sum(propensities, axis=1))
     ax[0].set_title("Time intervals along iterations")
     ax[1].set_title("(Flow of) Time along iterations")
+    ax[2].set_title("Total propensity along iterations")
+    fig2.suptitle("From last simulation")
 
     plt.show()
 

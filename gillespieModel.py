@@ -169,12 +169,19 @@ class individualGillespieModel:
 
         stepNumber = 0
 
-        while(self.currentTime < maxTime and not self.population[0] == 1):
+        isTerminalState = False
+
+        while(self.currentTime < maxTime and not isTerminalState):
+
+            for n in self.population:
+                isTerminalState = isTerminalState or (n==1)
+
             if(stepNumber%50 == 0):
                 print("Time: "+str(self.currentTime)[:5]+"/"+str(maxTime)[:5]+"...")
             self.step()
             stepNumber += 1
-        if self.population[0] == 1:
+
+        if isTerminalState:
             print("End of simulation: Terminal state\n\n")
         else:
             print("End of simulation: Terminal time\n\n")

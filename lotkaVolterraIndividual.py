@@ -20,15 +20,21 @@ class lotkaVolterraIndividual:
         # propensity functions
         def preyBirthProp(state):
             if state.group == "prey":
-                return 10
+                return 5
             else:
                 return 0
 
         def preyEatenProp(state):
-            return 10*0.001*self.nPreds
+            if state.group=="prey":
+                return 10*0.001*self.nPreds
+            else:
+                return 0
 
         def predEatProp(state):
-            return 10*0.001*self.nPreys
+            if state.group=="pred":
+                return 10*0.001*self.nPreys
+            else:
+                return 0
 
         def predDeathProp(state):
             if state.group == "pred":
@@ -141,7 +147,7 @@ class lotkaVolterraIndividual:
 def main():
 
     # Simulation conditions
-    maxTime = 5
+    maxTime = 1
     preds0 = 50
     preys0 = 50
 
@@ -161,20 +167,6 @@ def main():
         axSim[sim].plot(times, preys, 'b', alpha=0.7, label="Preys")
         axSim[sim].legend()
         axSim[sim].set_title("Status vs time, simulation {}".format(sim))
-
-#    fig2, ax = plt.subplots(3,1)
-
-#    times = np.array(times)
-#    timeIntervals = times[1:] - times[:-1]
-#    ax[0].plot(timeIntervals, 'k')
-#    ax[1].plot(times, 'k', linewidth=2)
-#    ax[2].plot(np.sum(propensities, axis=1))
-#    ax[0].set_title("Time intervals along iterations")
-#    ax[1].set_title("(Flow of) Time along iterations")
-#    ax[2].set_title("Total propensity along iterations")
-#    ax[0].set_xticks([])
-#    ax[1].set_xticks([])
-#    fig2.suptitle("From last simulation")
 
     plt.show()
 

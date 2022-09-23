@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from gillespieModel import Reaction, GillespieModel
-from scipy.integrate import solve_ivp
 
 class State:
     def __init__(self, Pred, Prey):
@@ -15,28 +14,28 @@ def main():
 
     birth = Reaction(
         "preyBirth",
-        lambda s,t: 1*s.Prey,
+        lambda s,t: 10*1*s.Prey,
         lambda s: State(s.Pred, s.Prey+1)
     )
     eat = Reaction(
         "preyEaten",
-        lambda s,t: 0.001*s.Prey*s.Pred,
+        lambda s,t: 10*0.001*s.Prey*s.Pred,
         lambda s: State(s.Pred+1, s.Prey-1)
     )
     deathPred = Reaction(
         "predDeath",
-        lambda s,t: 1*s.Pred,
+        lambda s,t: 0.5*1*s.Pred,
         lambda s: State(s.Pred-1, s.Prey)
     )
     deathPrey = Reaction(
         "preyDeath",
-        lambda s,t: 0.5*s.Prey,
+        lambda s,t: 0*0.5*s.Prey,
         lambda s: State(s.Pred, s.Prey-1)
     )
 
     # Define simulation conditions
-    maxTime = 30
-    initState = State(1000, 1000)
+    maxTime = 5
+    initState = State(50, 50)
 
     nSimulations = 2
     figSim, axSim = plt.subplots(nSimulations,1)

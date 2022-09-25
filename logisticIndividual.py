@@ -2,18 +2,22 @@ from numpy.random import uniform
 import numpy as np
 
 class CFG:
+    # Configuration
+    # It holds model parameters, initial conditions, etc.
     def __init__(self):
         self.r = 1
-        self.K = 10000
+        self.K = 100
         self.nReactions = 2
-        self.maxIndividuals = 100000
-        self.maxReactions = self.maxIndividuals*self.nReactions
-        self.N0 = 1000
+        self.maxIndividuals = 500
+        self.N0 = 10
+        self.maxTime = 2
 
 class globalState:
+    # The global state common to all the groups and individuals. All the algorithm is
+    # managed by a single instance of this class.
     def __init__(self, cfg):
 
-        # Initialize populatoin array - with initial states
+        # Initialize population array - with initial states
         self.N = cfg.N0
         self.populationArray = [Individual(i) for i in range(self.N)] + [Individual(i, isAlive=False) for i in range(cfg.maxIndividuals)[self.N:]]
 
@@ -28,17 +32,19 @@ class globalState:
         self.totProp = 0
 
         # Update reaction and propensities
-        self.updatePropensities(cfg)
+#        self.updatePropensities(cfg)
 
         self.t = 0
         self.dt = 0
         self.reactionIdx = 0
         self.rType = ""
 
+        self.isTerminalState = False
+        self.terminalLog = "End of simulation: max time"
 
-    def print(self, complete=False, csv=False):
-
-        if complete:
+    def printDebug(self):
+        # mainly for debugging
+        if not self.isTerminalState:
             aliveCount = 0
             n = 0
             log = ""
@@ -51,53 +57,15 @@ class globalState:
                         break
                 else:
                     log += "_"
+        if self.isTerminalState:
+            log = self.terminalLog
 
-            print("\nN: ",self.N, " totP: ", self.totProp)
-            print(log)
+        print("t: "+str(self.t)[:6]+" N: "+str(self.N)+" "+log)
 
-        elif csv:
-            print(str(self.t)+','+str(self.N))
-
-#        else:
-#            print("t: "+str(self.t)[:7]+" N: ", self.N)
-
-
-    def updateIndividualPropensities(self, cfg):
-        # Each individual computes its own propensities
-        # Stop when all the living individual have been found
-        aliveCount = 0
-        for i in self.populationArray:
-            i.iBasedReaction(cfg, self.N)
-            if i.isAlive:
-                aliveCount += 1
-                if aliveCount==self.N:
-                    break
-
-    def updateReactionArray(self, cfg):
-        # The global array of reactions is updated by the propensities computed by the individuals
-        # It's better if the indivuals directly update this array on their own
-        for i in range(self.N):
-            for j in range(cfg.nReactions):
-                self.reactionArray[cfg.nReactions*i+j].propIncrement = self.populationArray[i].reactionProps[j]
-
-    def updateCumulativeProp(self, cfg):
-        # Here we fill the cumulative propensity array
-        # Actually, also this could be done directly by the indivduals
-        totProp = 0
-        aliveCount = 0
-        self.cumPropArray = [0 for _ in self.reactionArray]
-        for i in range(cfg.maxIndividuals):
-
-            for j in range(cfg.nReactions):
-                totProp += self.reactionArray[cfg.nReactions*i + j].propIncrement
-                self.cumPropArray[cfg.nReactions*i + j] = totProp
-
-            if self.populationArray[i].isAlive:
-                aliveCount += 1
-                if aliveCount==self.N:
-                    break
-
-        self.totProp = totProp
+    def printCsvLine(self):
+        # prints in csv format, so you can run simply:
+        # "python script.py >> output.csv" from command line
+        print(str(self.t)+','+str(self.N))
 
     def updatePropensities(self, cfg):
 
@@ -118,12 +86,8 @@ class globalState:
                     break
 
         self.totProp = totProp
-
-
-#    def updatePropensities(self, cfg):
-#        self.updateIndividualPropensities(cfg)
-#        self.updateReactionArray(cfg)
-#        self.updateCumulativeProp(cfg)
+        if self.totProp == 0:
+            isTerminalState = True
 
     def selectTime(self, r1):
         self.dt = (1/self.totProp)*np.log(1/r1)
@@ -162,36 +126,44 @@ class globalState:
 
     def step(self, cfg):
 
+        # Update propensities
+        self.updatePropensities(cfg)
+
         # Draw time & reaction
         r1 = uniform()
         r2 = uniform()
         self.selectTime(r1)
         self.selectReaction(r2)
 
+        if self.t > cfg.maxTime:
+            self.isTerminalState = True
+
         if self.N==1 and self.rType=="Death":
-            raise ValueError("x_x Extinction x_x")
+            self.isTerminalState = True
+            self.terminalLog = "End of simulation: Extinction"
+
+        if self.N==cfg.maxIndividuals-1:
+            self.isTerminalState = True
+            self.terminalLog = "End of simulation: Max population"
 
         # Apply reaction
         self.applyReaction()
 
-        # Update propensities
-        self.updatePropensities(cfg)
+    def simulate(self, cfg, debugLog=False):
 
-        self.print(csv=True)
+        while not self.isTerminalState:
+
+            self.step(cfg)
+
+            if debugLog:
+                self.printDebug()
+            else:
+                self.printCsvLine()
 
 class Individual:
     def __init__(self, id, isAlive=True):
         self.id = id
         self.isAlive = isAlive
-#        self.reactionProps = [0,0]
-
-#    def iBasedReaction(self, cfg, N):
-#        if self.isAlive:
-#            self.reactionProps[0] = cfg.r          # birth
-#            self.reactionProps[1] = cfg.r*N/cfg.K  # death
-#        else:
-#            self.reactionProps[0] = 0
-#            self.reactionProps[1] = 0
 
     def reactionRates(self, cfg, N):
         reactionProps = [0, 0]
@@ -201,9 +173,6 @@ class Individual:
 
         return reactionProps
 
-
-
-# better a struct - it has no methods
 class Reaction:
     def __init__(self, indivId, type, propIncrement):
         self.indivId = indivId
@@ -212,7 +181,4 @@ class Reaction:
 
 cfg = CFG()
 gState = globalState(cfg)
-
-gState.print()
-for _ in range(7*5000):
-    gState.step(cfg)
+gState.simulate(cfg, debugLog = True)

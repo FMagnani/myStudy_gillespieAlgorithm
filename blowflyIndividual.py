@@ -30,8 +30,9 @@ class Reaction:
 class CFG:
     # Configuration
     # It holds model parameters, initial conditions, etc.
-    def __init__(self, dJ=0.0060455567, dA=0.27, beta=8.5, c=600, tau=15.6, nReactions=2,
-                 maxIndividuals=5000, N0=[0,50], maxTime=100):
+    def __init__(self, dJ=0.0060455567, dA=0.27, beta=8.5, c=600, tau=15.6,
+                 nReactions=2,
+                 maxIndividuals=35000, N0=[0,5000], maxTime=120):
         self.dJ = dJ
         self.dA = dA
         self.beta = beta
@@ -105,7 +106,7 @@ class globalState:
     def printCsvLine(self):
         # prints in csv format, so you can run simply:
         # "python script.py >> output.csv" from command line
-        print(str(self.t)+','+str(self.N))
+        print(str(self.t)+','+str(self.N[0])+','+str(self.N[1]))
 
     def updatePropensities(self, cfg):
 
@@ -238,16 +239,16 @@ class globalState:
             elif csv:
                 self.printCsvLine()
 
-            self.jHistory.append(self.N[0])
-            self.aHistory.append(self.N[1])
-            self.tHistory.append(self.t)
+#            self.jHistory.append(self.N[0])
+#            self.aHistory.append(self.N[1])
+#            self.tHistory.append(self.t)
 
-        return self.tHistory, self.jHistory, self.aHistory
+#        return self.tHistory, self.jHistory, self.aHistory
 
 # Example of usage:
 cfg = CFG()
 gState = globalState(cfg)
-gState.simulate(cfg, debugLog = True)
+gState.simulate(cfg, csv = True)
 
 def pandasParseCsv(filename):
     # to parse data saved as csv

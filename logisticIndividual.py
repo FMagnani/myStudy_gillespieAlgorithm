@@ -4,11 +4,11 @@ import numpy as np
 class CFG:
     def __init__(self):
         self.r = 1
-        self.K = 100
+        self.K = 10000
         self.nReactions = 2
-        self.maxIndividuals = 10000
+        self.maxIndividuals = 100000
         self.maxReactions = self.maxIndividuals*self.nReactions
-        self.N0 = 10
+        self.N0 = 1000
 
 class globalState:
     def __init__(self, cfg):
@@ -214,5 +214,5 @@ cfg = CFG()
 gState = globalState(cfg)
 
 gState.print()
-for _ in range(1000):
+for _ in range(7*5000):
     gState.step(cfg)

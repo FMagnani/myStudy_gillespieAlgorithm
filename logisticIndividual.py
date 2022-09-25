@@ -1,21 +1,43 @@
 from numpy.random import uniform
 import numpy as np
+import pandas as pd
+
+class Individual:
+    def __init__(self, id, isAlive=True):
+        self.id = id
+        self.isAlive = isAlive
+
+    def reactionRates(self, cfg, N):
+        reactionProps = [0, 0]
+        if self.isAlive:
+            reactionProps[0] = cfg.r          # birth
+            reactionProps[1] = cfg.r*N/cfg.K  # death
+
+        return reactionProps
+
+class Reaction:
+    def __init__(self, indivId, type, propIncrement):
+        self.indivId = indivId
+        self.type = type
+        self.propIncrement = propIncrement
 
 class CFG:
     # Configuration
     # It holds model parameters, initial conditions, etc.
-    def __init__(self):
-        self.r = 1
-        self.K = 100
-        self.nReactions = 2
-        self.maxIndividuals = 500
-        self.N0 = 10
-        self.maxTime = 2
+    def __init__(self, r=1, K=100, nReactions=2, maxIndividuals=500, N0=10, maxTime=8):
+        self.r = r
+        self.K = K
+        self.nReactions = nReactions
+        self.maxIndividuals = maxIndividuals
+        self.N0 = N0
+        self.maxTime = maxTime
 
 class globalState:
     # The global state common to all the groups and individuals. All the algorithm is
     # managed by a single instance of this class.
-    def __init__(self, cfg):
+    def __init__(self, cfg, seed=53):
+
+        np.random.seed(seed)
 
         # Initialize population array - with initial states
         self.N = cfg.N0
@@ -31,9 +53,6 @@ class globalState:
         self.cumPropArray = [0 for _ in self.reactionArray]
         self.totProp = 0
 
-        # Update reaction and propensities
-#        self.updatePropensities(cfg)
-
         self.t = 0
         self.dt = 0
         self.reactionIdx = 0
@@ -41,6 +60,9 @@ class globalState:
 
         self.isTerminalState = False
         self.terminalLog = "End of simulation: max time"
+
+        self.nHistory = []
+        self.tHistory = []
 
     def printDebug(self):
         # mainly for debugging
@@ -149,7 +171,7 @@ class globalState:
         # Apply reaction
         self.applyReaction()
 
-    def simulate(self, cfg, debugLog=False):
+    def simulate(self, cfg, debugLog=False, csv=False):
 
         while not self.isTerminalState:
 
@@ -157,28 +179,28 @@ class globalState:
 
             if debugLog:
                 self.printDebug()
-            else:
+            elif csv:
                 self.printCsvLine()
 
-class Individual:
-    def __init__(self, id, isAlive=True):
-        self.id = id
-        self.isAlive = isAlive
+            self.nHistory.append(self.N)
+            self.tHistory.append(self.t)
 
-    def reactionRates(self, cfg, N):
-        reactionProps = [0, 0]
-        if self.isAlive:
-            reactionProps[0] = cfg.r          # birth
-            reactionProps[1] = cfg.r*N/cfg.K  # death
+        return self.tHistory, self.nHistory
 
-        return reactionProps
+# Example of usage:
+# cfg = CFG()
+# gState = globalState(cfg)
+# t, n = gState.simulate(cfg, debugLog = True)
 
-class Reaction:
-    def __init__(self, indivId, type, propIncrement):
-        self.indivId = indivId
-        self.type = type
-        self.propIncrement = propIncrement
+def pandasParseCsv(filename):
+    # to parse data saved as csv
 
-cfg = CFG()
-gState = globalState(cfg)
-gState.simulate(cfg, debugLog = True)
+    df = pd.read_csv(filename, names=["t", "N"])
+
+    df.t.apply(float)
+    df.N.apply(int)
+
+    t = df.t.to_numpy()
+    N = df.N.to_numpy()
+
+    return t, N

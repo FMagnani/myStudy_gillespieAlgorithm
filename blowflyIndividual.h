@@ -5,14 +5,16 @@
 using namespace std;
 
 // constants
-const int maxIndividuals = 500;
+const int maxIndividuals = 35000;
 const int maxReactions = 2;
 
 struct CFG{
     // config
+    int randSeed = 53;
     float r = 1;
-    float K = 10;
+    float K = 200;
     int N0 = 10;
+    float maxTime = 150;
 };
 
 struct iState{
@@ -52,9 +54,11 @@ struct globalState{
     Reaction reactionArray[maxIndividuals*maxReactions];
     float propensityArray[maxIndividuals*maxReactions];
     float totPropensity;
+    float minNonZeroPropensity;
 
     float t = 0;
     float dt;
+
     int reactionIdx;
     char reactionType;
 
@@ -63,7 +67,7 @@ struct globalState{
 
 };
 
-void initGlobalState(struct CFG cfg, struct globalState& gState){
+void initGlobalState(struct globalState& gState, struct CFG cfg){
 
     // Init population array and populations number
     for(int i=0; i<cfg.N0; i++){
@@ -74,7 +78,7 @@ void initGlobalState(struct CFG cfg, struct globalState& gState){
 
     // Init reaction array, propensity array and total propensity
     float totProp = 0;
-    for(int i=0; i<cfg.N0; i++){
+    for(int i=0; i<maxIndividuals; i++){
 
         iState s = gState.populationArray[i];
 
@@ -99,28 +103,49 @@ void initGlobalState(struct CFG cfg, struct globalState& gState){
 
 void printGlobalState(struct globalState gState){
 
-    cout << "t: " << gState.t << " N: " << gState.N << '\n';
+    if(!gState.isTerminalState){
 
-    string populationAliveLog = "";
-    for(int i=0; i<gState.N; i++){
-        if(gState.populationArray[i].isAlive){
-            populationAliveLog += '*';
-        }else{
-            populationAliveLog += '_';
-        }
+            //cout << "t: " << gState.t << " N: " << gState.N << '\n';
+
+            string populationAliveLog = "";
+            int aliveCount = 0;
+            for(int i=0; i<maxIndividuals; i++){
+                if(gState.populationArray[i].isAlive){
+                    populationAliveLog += '*';
+                    aliveCount += 1;
+                }else{
+                    populationAliveLog += '_';
+                }
+                if(aliveCount==gState.N){
+                    break;
+                }
+            }
+            cout << gState.t << " " << populationAliveLog << '\n';
+
+        /*
+            string reactionTypeLog = "";
+            string reactionPropLog = "";
+            aliveCount = 0;
+            for(int i=0; i<maxIndividuals; i++){
+                if(gState.populationArray[i].isAlive){
+                    reactionTypeLog += gState.reactionArray[maxReactions*i +0].type;
+                    reactionTypeLog += gState.reactionArray[maxReactions*i +1].type;
+                    aliveCount += 1;
+                }else{
+                    reactionTypeLog += "__";
+                }
+                reactionPropLog += to_string(gState.propensityArray[maxReactions*i +0])+" ";
+                reactionPropLog += to_string(gState.propensityArray[maxReactions*i +1])+" ";
+                if(aliveCount==gState.N){
+                    break;
+                }
+            }
+            cout << reactionTypeLog << '\n';
+            cout << reactionPropLog << '\n';
+        */
+    }else{
+        cout << gState.terminalLog;
     }
-    cout << populationAliveLog << '\n';
-
-
-    string reactionTypeLog = "";
-    string reactionPropLog = "";
-    for(int i=0; i<gState.N*2; i++){
-        reactionTypeLog += gState.reactionArray[i].type;
-        reactionPropLog += to_string(gState.propensityArray[i])+" ";
-    }
-    cout << reactionTypeLog << '\n';
-    cout << reactionPropLog << '\n';
-
 
 }
 
@@ -132,17 +157,24 @@ void updatePropensities(struct globalState& gState, struct CFG& cfg){
 
     float totProp = 0;
     int aliveCount = 0;
+    float minNonZeroPropensity = gState.totPropensity;
     for(int i=0; i<maxIndividuals; i++){
 
         iState s = gState.populationArray[i];
 
         float bRate = birthRate(cfg, s, gState.N);
         totProp += bRate;
-        gState.propensityArray[maxReactions*i + 0] = bRate;
+        gState.propensityArray[maxReactions*i + 0] = totProp;
 
         float dRate = deathRate(cfg, s, gState.N);
         totProp += dRate;
-        gState.propensityArray[maxReactions*i + 1] = dRate;
+        gState.propensityArray[maxReactions*i + 1] = totProp;
+
+        // Look for minimum propensity interval
+        if(bRate!=0 and bRate<minNonZeroPropensity);
+            minNonZeroPropensity = bRate;
+        if(dRate!=0 and dRate<minNonZeroPropensity);
+            minNonZeroPropensity = dRate;
 
         if(s.isAlive){
             aliveCount += 1;
@@ -153,21 +185,79 @@ void updatePropensities(struct globalState& gState, struct CFG& cfg){
 
     }
     gState.totPropensity = totProp;
+    gState.minNonZeroPropensity = minNonZeroPropensity;
 
 }
 
-float drawFromUniform01(int maxInt){
-    // This should return a random number between 0 and 1 with enough "resolution"
-    // for not "missing" or "skipping" any propensity interval.
-    // Now, my approach is to take the smallest interval Dp that I want to "see"
-    // and choosing maxInt as 10 * 1/Dp
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, maxInt-1);
+void selectTime(struct globalState& gState, float r1){
 
-    float r1;
-    r1 = dis(gen)/float(maxInt);
+    float meanTime = 1/gState.totPropensity;
+    float dt = meanTime*log(1/r1);
+    gState.dt = dt;
+    gState.t += dt;
 
-    return r1;
+}
+
+void selectReaction(struct globalState& gState, float r2){
+
+    int reactionIdx = 0;
+    float randValue = gState.totPropensity*r2;
+    float cumulativeProp = gState.propensityArray[reactionIdx];
+    while(randValue > cumulativeProp){
+        reactionIdx += 1;
+        cumulativeProp = gState.propensityArray[reactionIdx];
+    }
+    gState.reactionIdx = reactionIdx;
+    gState.reactionType = gState.reactionArray[reactionIdx].type;
+
+}
+
+void birth(struct globalState& gState){
+
+    for(int i=0; i<maxIndividuals; i++){
+        if( ! gState.populationArray[i].isAlive ){
+            gState.populationArray[i].isAlive = true;
+            gState.N += 1;
+            break;
+        }
+    }
+}
+
+void death(struct globalState& gState){
+
+    int indivId = gState.reactionArray[gState.reactionIdx].indivId;
+    gState.populationArray[indivId].isAlive = false;
+    gState.N += -1;
+
+}
+
+void applyReaction(struct globalState& gState){
+
+    if(gState.reactionType=='+'){
+        birth(gState);
+    }else if(gState.reactionType=='-'){
+        death(gState);
+    }
+
+}
+
+void checkTerminalState(struct globalState& gState, struct CFG& cfg){
+
+    if(gState.t > cfg.maxTime){
+        gState.isTerminalState = true;
+        gState.terminalLog = "End of simulation: max time\n";
+    }else if(gState.N==1 && gState.reactionType=='-'){
+        gState.isTerminalState = true;
+        gState.terminalLog = "End of simulation: extinction\n";
+    }else if(gState.N==maxIndividuals-1 && gState.reactionType=='+'){
+        gState.isTerminalState = true;
+        gState.terminalLog = "End of simulation: max population\n";
+    }
+
+}
+
+void step(struct globalState& gState, struct CFG& cfg){
+
+
 
 }

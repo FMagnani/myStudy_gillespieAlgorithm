@@ -3,36 +3,36 @@
 
 using namespace std;
 
+
 int main(){
 
     CFG cfg;
     globalState gState;
 
-    initGlobalState(cfg, gState);
+    mt19937 gen(cfg.randSeed); // Standard mersenne_twister_engine
+    uniform_real_distribution<> distr(0.0, 1.0);
 
+    initGlobalState(gState, cfg);
     printGlobalState(gState);
 
-    // simulate death of third individual
-    gState.populationArray[2].isAlive = false;
-    gState.N -= 1;
+    while( !gState.isTerminalState ){
 
-    printGlobalState(gState);
+        float r1 = distr(gen);
+        float r2 = distr(gen);
 
-    updatePropensities(gState, cfg);
+        selectTime(gState, r1);
+        selectReaction(gState, r2);
 
-    printGlobalState(gState);
+        checkTerminalState(gState, cfg);
+
+        applyReaction(gState);
+
+        updatePropensities(gState, cfg);
+
+        printGlobalState(gState);
+
+    }
 
 
-/*
-    float Dp = 0.009;
-    int maxInt = int(10/0.009);
-
-    cout << maxInt << '\n';
-    cout << drawFromUniform01(maxInt) << '\n';
-*/
-
-//    Individual i = Individual(1);
-//    cout << i.birthRate(cfg, 10) << '\n';
-//    cout << i.deathRate(cfg, 10) << '\n';
 
 }

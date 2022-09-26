@@ -12,9 +12,9 @@ struct CFG{
     // config
     int randSeed = 53;
     float r = 1;
-    float K = 200;
+    float K = 30;
     int N0 = 10;
-    float maxTime = 150;
+    float maxTime = 30;
 };
 
 struct iState{

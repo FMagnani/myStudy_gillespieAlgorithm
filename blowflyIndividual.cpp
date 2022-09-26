@@ -13,7 +13,7 @@ int main(){
     uniform_real_distribution<> distr(0.0, 1.0);
 
     initGlobalState(gState, cfg);
-    printGlobalState(gState);
+//    printGlobalState(gState);
 
     while( !gState.isTerminalState ){
 
@@ -29,7 +29,8 @@ int main(){
 
         updatePropensities(gState, cfg);
 
-        printGlobalState(gState);
+        //printGlobalState(gState);
+        printCsvLine(gState);
 
     }
 

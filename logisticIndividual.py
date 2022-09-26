@@ -1,6 +1,5 @@
 from numpy.random import uniform
 import numpy as np
-import pandas as pd
 
 class Individual:
     def __init__(self, id, isAlive=True):
@@ -191,16 +190,3 @@ class globalState:
 # cfg = CFG()
 # gState = globalState(cfg)
 # t, n = gState.simulate(cfg, debugLog = True)
-
-def pandasParseCsv(filename):
-    # to parse data saved as csv
-
-    df = pd.read_csv(filename, names=["t", "N"])
-
-    df.t.apply(float)
-    df.N.apply(int)
-
-    t = df.t.to_numpy()
-    N = df.N.to_numpy()
-
-    return t, N

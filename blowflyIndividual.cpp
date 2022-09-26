@@ -3,54 +3,15 @@
 
 using namespace std;
 
-// constants
-const int maxIndividuals = 500;
-
-// config
-struct CFG{
-
-    float birthRate = 1;
-    float deathRate = 10;
-
-} cfg;
-
-// global state - this is continuously changed
-struct globalState{
-
-    float populationArray[maxIndividuals];
-
-} gState;
-
-class Individual{
-public:
-    struct iState{
-        int id;
-        bool isAlive;
-    } s;
-    Individual(int id, bool isAlive=true){
-        s.id = id;
-        s.isAlive = isAlive;
-    };
-
-    float birthRate(struct CFG cfg, int nJ, int nA){
-        if(s.isAlive){
-            return cfg.birthRate;
-        }else{
-            return 0;
-        }
-    }
-
-    float deathRate(struct CFG cfg, int nJ, int nA){
-        if(s.isAlive){
-            return cfg.deathRate;
-        }else{
-            return 0;
-        }
-    }
-
-};
-
 int main(){
+
+    CFG cfg;
+    globalState gState;
+
+    initGlobalState(cfg, gState);
+    printCsvLine(gState);
+    printCsvLine(gState);
+    printCsvLine(gState);
 
 /*
     float Dp = 0.009;
@@ -60,8 +21,8 @@ int main(){
     cout << drawFromUniform01(maxInt) << '\n';
 */
 
-    Individual i = Individual(1);
-    cout << i.birthRate(cfg, 10, 10) << '\n';
-    cout << i.deathRate(cfg, 10, 10) << '\n';
+//    Individual i = Individual(1);
+//    cout << i.birthRate(cfg, 10) << '\n';
+//    cout << i.deathRate(cfg, 10) << '\n';
 
 }

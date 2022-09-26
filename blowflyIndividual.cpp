@@ -9,9 +9,18 @@ int main(){
     globalState gState;
 
     initGlobalState(cfg, gState);
-    printCsvLine(gState);
-    printCsvLine(gState);
-    printCsvLine(gState);
+
+    printGlobalState(gState);
+
+    // simulate death of third individual
+    gState.populationArray[2].isAlive = false;
+
+    printGlobalState(gState);
+
+    updatePropensities(gState, cfg);
+
+    printGlobalState(gState);
+    
 
 /*
     float Dp = 0.009;

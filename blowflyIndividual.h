@@ -111,7 +111,7 @@ void printGlobalState(struct globalState gState){
     }
     cout << populationAliveLog << '\n';
 
-/*
+
     string reactionTypeLog = "";
     string reactionPropLog = "";
     for(int i=0; i<gState.N*2; i++){
@@ -120,12 +120,40 @@ void printGlobalState(struct globalState gState){
     }
     cout << reactionTypeLog << '\n';
     cout << reactionPropLog << '\n';
-*/
+
 
 }
 
 void printCsvLine(struct globalState gState){
     cout << gState.t <<','<<gState.N<<'\n';
+}
+
+void updatePropensities(struct globalState& gState, struct CFG& cfg){
+
+    float totProp = 0;
+    int aliveCount = 0;
+    for(int i=0; i<maxIndividuals; i++){
+
+        iState s = gState.populationArray[i];
+
+        float bRate = birthRate(cfg, s, gState.N);
+        totProp += bRate;
+        gState.propensityArray[maxReactions*i + 0] = bRate;
+
+        float dRate = deathRate(cfg, s, gState.N);
+        totProp += dRate;
+        gState.propensityArray[maxReactions*i + 1] = dRate;
+
+        if(s.isAlive){
+            aliveCount += 1;
+            if(aliveCount==gState.N){
+                break;
+            }
+        }
+
+    }
+    gState.totPropensity = totProp;
+
 }
 
 float drawFromUniform01(int maxInt){

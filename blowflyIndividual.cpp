@@ -14,13 +14,14 @@ int main(){
 
     // simulate death of third individual
     gState.populationArray[2].isAlive = false;
+    gState.N -= 1;
 
     printGlobalState(gState);
 
     updatePropensities(gState, cfg);
 
     printGlobalState(gState);
-    
+
 
 /*
     float Dp = 0.009;

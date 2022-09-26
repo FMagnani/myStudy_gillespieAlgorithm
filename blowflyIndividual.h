@@ -116,7 +116,7 @@ void printGlobalState(struct globalState gState){
     string reactionPropLog = "";
     for(int i=0; i<gState.N*2; i++){
         reactionTypeLog += gState.reactionArray[i].type;
-        reactionPropLog += to_string(gState.propensityArray[i]);
+        reactionPropLog += to_string(gState.propensityArray[i])+" ";
     }
     cout << reactionTypeLog << '\n';
     cout << reactionPropLog << '\n';

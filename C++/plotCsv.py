@@ -5,31 +5,23 @@ import pandas as pd
 def pandasParseCsv(filename):
     # to parse data saved as csv
 
-    df = pd.read_csv(filename, names=["t", "N"])
+    df = pd.read_csv(filename, names=["t", "nJ", "nA"])
 
     df.t.apply(float)
-    df.N.apply(int)
+    df.nJ.apply(int)
+    df.nA.apply(int)
 
     t = df.t.to_numpy()
-    N = df.N.to_numpy()
+    nJ = df.nJ.to_numpy()
+    nA = df.nA.to_numpy()
 
-    return t, N
+    return t, nJ, nA
 
-r = 1
-K = 30
-N0 = 10
-maxTime = 300
-maxIndividuals = 35000
+t, nJ, nA = pandasParseCsv("blowflyOutput.csv")
 
-t, n = pandasParseCsv("output.csv")
-
-fig, ax = plt.subplots(1,1)
-ax.plot(t, n, 'b', alpha=0.8)
-
-def logistic(t):
-    return N0*K/(N0+(K-N0)*pow(np.e, -r*t))
-
-t = np.array(t)
-ax.plot(t, logistic(t), 'r')
+fig, ax = plt.subplots(2,1)
+ax[0].plot(t, nJ, 'b', alpha=0.8)
+ax[0].plot(t, nA, 'r', alpha=0.8)
+ax[1].plot(t, nA, 'r', alpha=0.8)
 
 plt.show()

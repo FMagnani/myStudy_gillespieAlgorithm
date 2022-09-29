@@ -13,7 +13,7 @@ int main(){
     uniform_real_distribution<> distr(0.0, 1.0);
 
     initGlobalState(gState, cfg);
-//    printGlobalState(gState);
+    //printGlobalState(gState);
 
     while( !gState.isTerminalState ){
 
@@ -23,11 +23,15 @@ int main(){
         selectTime(gState, r1);
         selectReaction(gState, r2);
 
-        checkTerminalState(gState, cfg);
+        maturationProcess(gState, cfg);
 
         applyReaction(gState);
 
-        updatePropensities(gState, cfg);
+        checkTerminalState(gState, cfg);
+
+        if( !gState.isTerminalState ){
+            updatePropensities(gState, cfg);
+        }
 
         //printGlobalState(gState);
         printCsvLine(gState);

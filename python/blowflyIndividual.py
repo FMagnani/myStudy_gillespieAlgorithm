@@ -123,7 +123,7 @@ class globalState:
 
             if self.populationArray[i].isAlive:
                 aliveCount += 1
-                if aliveCount==self.N:
+                if aliveCount==self.N:  !!! !!! !!! !!! !!! Idiota
                     break
 
         self.totProp = totProp

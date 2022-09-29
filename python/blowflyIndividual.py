@@ -112,6 +112,7 @@ class globalState:
 
         totProp = 0
         aliveCount = 0
+        totIndividuals = self.N[0] + self.N[1]
         self.cumPropArray = [0 for _ in self.cumPropArray]
         for i in range(cfg.maxIndividuals):
 
@@ -123,7 +124,7 @@ class globalState:
 
             if self.populationArray[i].isAlive:
                 aliveCount += 1
-                if aliveCount==self.N:  !!! !!! !!! !!! !!! Idiota
+                if aliveCount==totIndividuals:
                     break
 
         self.totProp = totProp

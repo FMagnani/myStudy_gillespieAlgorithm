@@ -13,8 +13,8 @@ struct CFG{
     // config
     int randSeed = 123546;
     float lambda = 30;
-    float tau = 1;
-    int S0 = 10;
+    float tau = 3;
+    int S0 = 1;
     int G0 = 0;
     int N0 = 0;
     float maxTime = 1000;

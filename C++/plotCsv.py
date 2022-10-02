@@ -5,26 +5,30 @@ import pandas as pd
 def pandasParseCsv(filename):
     # to parse data saved as csv
 
-    df = pd.read_csv(filename, names=["t", "S", "G", "N"])
+    df = pd.read_csv(filename, names=["t", "J", "A"])
 
     df.t.apply(float)
-    df.S.apply(int)
-    df.G.apply(int)
-    df.N.apply(int)
+    df.J.apply(int)
+    df.A.apply(int)
 
     t = df.t.to_numpy()
-    S = df.S.to_numpy()
-    G = df.G.to_numpy()
-    N = df.N.to_numpy()
+    J = df.J.to_numpy()
+    A = df.A.to_numpy()
 
-    return t, S, G, N
+    return t, J, A
 
-t, S, G, N = pandasParseCsv("epidermalOutput.csv")
+t, J, A = pandasParseCsv("blowflyVariant.csv")
+t1, J1, A1 = pandasParseCsv("blowflyOutput.csv")
+
 
 fig, ax = plt.subplots(2,1)
-ax[0].plot(t, S, 'r', alpha=0.8)
-ax[0].plot(t, G, 'g', alpha=0.8)
-ax[0].plot(t, N, 'b', alpha=0.8)
-ax[1].plot(t, N, 'b', alpha=1)
+ax[0].plot(t, J, 'r', alpha=0.8, label = "Variant")
+ax[0].plot(t, A, 'r', alpha=0.8)
+ax[0].plot(t1, J1, 'b', alpha=0.8, label = "As the paper")
+ax[0].plot(t1, A1, 'b', alpha=0.8)
+ax[1].plot(t, A, 'r', alpha=0.8, label = "Variant")
+ax[1].plot(t1, A1, 'b', alpha=0.8, label = "As the paper")
+ax[0].legend()
+ax[1].legend()
 
 plt.show()
